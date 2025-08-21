@@ -1,413 +1,175 @@
-import React, { useState, useEffect } from 'react';
-import { ocrService, OCRTask, OCRBatchResult } from '../../services/OCRService';
-import { OCRProgress } from '../../services/OCREngine';
-import { Button } from '../common/Button';
-import { ProgressBar } from '../common/ProgressBar';
-import { LoadingSpinner } from '../common/LoadingSpinner';
+import React, { useState } from 'react'
+import { Eye, Download, Copy, Settings } from 'lucide-react'
+import type { PDFFile, OCRResult } from '@shared/types'
 
 interface OCRPanelProps {
-  onOCRComplete?: (results: any[]) => void;
-  className?: string;
+  file: PDFFile
 }
 
-interface OCRStatus {
-  isInitialized: boolean;
-  isProcessing: boolean;
-  currentTask?: string;
-  progress: OCRProgress | null;
-  batchProgress?: {
-    totalPages: number;
-    completedPages: number;
-    currentPage: number;
-    overallProgress: number;
-  };
-}
+export default function OCRPanel({ file }: OCRPanelProps) {
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [ocrResults, setOcrResults] = useState<OCRResult[]>([])
+  const [selectedLanguage, setSelectedLanguage] = useState('chi_sim+eng')
 
-export const OCRPanel: React.FC<OCRPanelProps> = ({
-  onOCRComplete,
-  className = ''
-}) => {
-  const [status, setStatus] = useState<OCRStatus>({
-    isInitialized: false,
-    isProcessing: false,
-    progress: null
-  });
-  
-  const [selectedLanguage, setSelectedLanguage] = useState('chi_sim+eng');
-  const [results, setResults] = useState<any[]>([]);
-  const [statistics, setStatistics] = useState<any>(null);
-  const [showResults, setShowResults] = useState(false);
-
-  useEffect(() => {
-    initializeOCR();
-    return () => {
-      ocrService.cleanup();
-    };
-  }, []);
-
-  const initializeOCR = async () => {
-    try {
-      setStatus(prev => ({ ...prev, isProcessing: true }));
-      
-      await ocrService.initialize((progress) => {
-        setStatus(prev => ({ ...prev, progress }));
-      });
-      
-      setStatus(prev => ({ 
-        ...prev, 
-        isInitialized: true, 
-        isProcessing: false,
-        progress: null
-      }));
-      
-      console.log('OCR面板初始化完成');
-    } catch (error) {
-      console.error('OCR初始化失败:', error);
-      setStatus(prev => ({ 
-        ...prev, 
-        isProcessing: false,
-        progress: {
-          status: 'error',
-          progress: 0,
-          message: '初始化失败'
-        }
-      }));
-    }
-  };
-
-  const handleSinglePageOCR = async () => {
-    if (!status.isInitialized) {
-      await initializeOCR();
-    }
-
-    try {
-      setStatus(prev => ({ ...prev, isProcessing: true, currentTask: 'single' }));
-      
-      // 创建模拟图像数据
-      const mockImageData = createMockImageData();
-      
-      const result = await ocrService.recognizePage(
-        mockImageData,
-        1,
-        (progress) => {
-          setStatus(prev => ({ ...prev, progress }));
-        }
-      );
-      
-      setResults([result]);
-      setStatus(prev => ({ 
-        ...prev, 
-        isProcessing: false, 
-        currentTask: undefined,
-        progress: null
-      }));
-      
-      updateStatistics();
-      setShowResults(true);
-      
-      if (onOCRComplete) {
-        onOCRComplete([result]);
-      }
-      
-    } catch (error) {
-      console.error('单页OCR失败:', error);
-      setStatus(prev => ({ 
-        ...prev, 
-        isProcessing: false,
-        currentTask: undefined,
-        progress: {
-          status: 'error',
-          progress: 0,
-          message: '识别失败'
-        }
-      }));
-    }
-  };
-
-  const handleBatchOCR = async () => {
-    if (!status.isInitialized) {
-      await initializeOCR();
-    }
-
-    try {
-      setStatus(prev => ({ ...prev, isProcessing: true, currentTask: 'batch' }));
-      
-      // 创建模拟的多页数据
-      const mockPages = Array.from({ length: 3 }, (_, i) => ({
-        imageData: createMockImageData(),
-        pageNumber: i + 1
-      }));
-      
-      const batchResult = await ocrService.recognizeBatch(
-        mockPages,
-        (batchProgress) => {
-          setStatus(prev => ({ 
-            ...prev, 
-            batchProgress,
-            progress: batchProgress.currentPageProgress
-          }));
-        }
-      );
-      
-      setResults(batchResult.results);
-      setStatus(prev => ({ 
-        ...prev, 
-        isProcessing: false, 
-        currentTask: undefined,
-        progress: null,
-        batchProgress: undefined
-      }));
-      
-      updateStatistics();
-      setShowResults(true);
-      
-      if (onOCRComplete) {
-        onOCRComplete(batchResult.results);
-      }
-      
-    } catch (error) {
-      console.error('批量OCR失败:', error);
-      setStatus(prev => ({ 
-        ...prev, 
-        isProcessing: false,
-        currentTask: undefined,
-        progress: {
-          status: 'error',
-          progress: 0,
-          message: '批量识别失败'
+  const handleStartOCR = async () => {
+    setIsProcessing(true)
+    
+    // 模拟OCR处理
+    setTimeout(() => {
+      const mockResults: OCRResult[] = [
+        {
+          text: '这是从PDF中识别出的文本内容。',
+          confidence: 0.95,
+          bbox: { x: 100, y: 100, width: 300, height: 50 },
+          page: 1
         },
-        batchProgress: undefined
-      }));
-    }
-  };
+        {
+          text: 'OCR技术可以将图像中的文字转换为可编辑的文本。',
+          confidence: 0.92,
+          bbox: { x: 100, y: 200, width: 350, height: 50 },
+          page: 1
+        },
+        {
+          text: '支持中英文混合识别，准确率较高。',
+          confidence: 0.88,
+          bbox: { x: 100, y: 300, width: 280, height: 50 },
+          page: 1
+        }
+      ]
+      
+      setOcrResults(mockResults)
+      setIsProcessing(false)
+    }, 3000)
+  }
 
-  const updateStatistics = () => {
-    const stats = ocrService.getStatistics();
-    setStatistics(stats);
-  };
+  const handleCopyText = () => {
+    const allText = ocrResults.map(result => result.text).join('\n')
+    navigator.clipboard.writeText(allText)
+  }
 
-  const handleLanguageChange = (language: string) => {
-    setSelectedLanguage(language);
-    ocrService.setLanguage(language);
-  };
-
-  const handleExportResults = (format: 'json' | 'txt' | 'csv') => {
-    const exportData = ocrService.exportResults(format);
-    
-    // 创建下载链接
-    const blob = new Blob([exportData], { 
-      type: format === 'json' ? 'application/json' : 'text/plain' 
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `ocr-results.${format}`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  const createMockImageData = (): ImageData => {
-    // 创建模拟的图像数据用于测试
-    const width = 800;
-    const height = 600;
-    const data = new Uint8ClampedArray(width * height * 4);
-    
-    // 填充白色背景
-    for (let i = 0; i < data.length; i += 4) {
-      data[i] = 255;     // R
-      data[i + 1] = 255; // G
-      data[i + 2] = 255; // B
-      data[i + 3] = 255; // A
-    }
-    
-    return new ImageData(data, width, height);
-  };
-
-  const renderProgress = () => {
-    if (!status.progress) return null;
-
-    return (
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-        <div className="flex items-center gap-3 mb-2">
-          <LoadingSpinner size="sm" />
-          <span className="text-sm font-medium text-blue-800">
-            {status.progress.message}
-          </span>
-        </div>
-        <ProgressBar 
-          progress={status.progress.progress} 
-          className="mb-2"
-        />
-        {status.batchProgress && (
-          <div className="text-xs text-blue-600">
-            批量进度: {status.batchProgress.completedPages}/{status.batchProgress.totalPages} 页
-            (当前: 第{status.batchProgress.currentPage}页)
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const renderResults = () => {
-    if (!showResults || results.length === 0) return null;
-
-    return (
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-        <div className="flex items-center justify-between mb-3">
-          <h4 className="font-medium text-gray-900">识别结果</h4>
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => handleExportResults('txt')}
-            >
-              导出TXT
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => handleExportResults('json')}
-            >
-              导出JSON
-            </Button>
-          </div>
-        </div>
-        
-        <div className="space-y-3 max-h-60 overflow-y-auto">
-          {results.map((result, index) => (
-            <div key={index} className="bg-white border border-gray-200 rounded p-3">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-700">
-                  页面 {result.pageNumber}
-                </span>
-                <span className="text-xs text-gray-500">
-                  置信度: {(result.confidence * 100).toFixed(1)}%
-                </span>
-              </div>
-              <div className="text-sm text-gray-600 bg-gray-50 rounded p-2">
-                {result.text || '未识别到文字'}
-              </div>
-              <div className="flex gap-4 mt-2 text-xs text-gray-500">
-                <span>单词数: {result.words.length}</span>
-                <span>处理时间: {result.processingTime.toFixed(0)}ms</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
-  const renderStatistics = () => {
-    if (!statistics) return null;
-
-    return (
-      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-        <h4 className="font-medium text-green-800 mb-2">统计信息</h4>
-        <div className="grid grid-cols-2 gap-3 text-sm">
-          <div>
-            <span className="text-green-600">总任务数:</span>
-            <span className="ml-2 font-medium">{statistics.totalTasks}</span>
-          </div>
-          <div>
-            <span className="text-green-600">成功任务:</span>
-            <span className="ml-2 font-medium">{statistics.completedTasks}</span>
-          </div>
-          <div>
-            <span className="text-green-600">平均置信度:</span>
-            <span className="ml-2 font-medium">
-              {(statistics.averageConfidence * 100).toFixed(1)}%
-            </span>
-          </div>
-          <div>
-            <span className="text-green-600">平均耗时:</span>
-            <span className="ml-2 font-medium">
-              {statistics.averageProcessingTime.toFixed(0)}ms
-            </span>
-          </div>
-        </div>
-      </div>
-    );
-  };
+  const handleDownloadText = () => {
+    const allText = ocrResults.map(result => result.text).join('\n')
+    const blob = new Blob([allText], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${file.name}_ocr.txt`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
 
   return (
-    <div className={`bg-white rounded-lg border border-gray-200 p-6 ${className}`}>
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-gray-900">OCR文字识别</h3>
-        <div className="flex items-center gap-2">
+    <div className="flex flex-col h-full bg-background">
+      {/* 工具栏 */}
+      <div className="flex items-center justify-between p-4 bg-card border-b border-border">
+        <div className="flex items-center space-x-4">
+          <h2 className="text-lg font-semibold">OCR文字识别</h2>
+          <span className="text-sm text-muted-foreground">{file.name}</span>
+        </div>
+        
+        <div className="flex items-center space-x-2">
           <select
             value={selectedLanguage}
-            onChange={(e) => handleLanguageChange(e.target.value)}
-            className="text-sm border border-gray-300 rounded px-2 py-1"
-            disabled={status.isProcessing}
+            onChange={(e) => setSelectedLanguage(e.target.value)}
+            className="input w-40"
           >
+            <option value="chi_sim+eng">中英文</option>
             <option value="chi_sim">简体中文</option>
             <option value="eng">英文</option>
-            <option value="chi_sim+eng">中英文混合</option>
+            <option value="chi_tra">繁体中文</option>
           </select>
-          <div className={`w-2 h-2 rounded-full ${
-            status.isInitialized ? 'bg-green-500' : 'bg-red-500'
-          }`} />
-        </div>
-      </div>
-
-      {renderProgress()}
-
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <Button
-          onClick={handleSinglePageOCR}
-          disabled={status.isProcessing}
-          className="w-full"
-        >
-          {status.isProcessing && status.currentTask === 'single' ? (
-            <>
-              <LoadingSpinner size="sm" className="mr-2" />
-              识别中...
-            </>
-          ) : (
-            '单页识别'
-          )}
-        </Button>
-        
-        <Button
-          onClick={handleBatchOCR}
-          disabled={status.isProcessing}
-          variant="outline"
-          className="w-full"
-        >
-          {status.isProcessing && status.currentTask === 'batch' ? (
-            <>
-              <LoadingSpinner size="sm" className="mr-2" />
-              批量识别中...
-            </>
-          ) : (
-            '批量识别'
-          )}
-        </Button>
-      </div>
-
-      {renderResults()}
-      
-      {statistics && (
-        <div className="mt-4">
-          {renderStatistics()}
-        </div>
-      )}
-
-      {!status.isInitialized && !status.isProcessing && (
-        <div className="text-center py-8 text-gray-500">
-          <p>OCR引擎未初始化</p>
-          <Button
-            onClick={initializeOCR}
-            size="sm"
-            className="mt-2"
+          
+          <button
+            onClick={handleStartOCR}
+            disabled={isProcessing}
+            className="btn btn-primary"
           >
-            重新初始化
-          </Button>
+            <Eye size={16} className="mr-2" />
+            {isProcessing ? '识别中...' : '开始识别'}
+          </button>
         </div>
-      )}
+      </div>
+
+      {/* 内容区域 */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* PDF预览区域 */}
+        <div className="w-1/2 border-r border-border p-4">
+          <div className="h-full bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
+            <div className="text-center text-muted-foreground">
+              <Eye size={48} className="mx-auto mb-4 opacity-50" />
+              <p>PDF预览区域</p>
+              <p className="text-sm">这里会显示PDF页面</p>
+            </div>
+          </div>
+        </div>
+
+        {/* OCR结果区域 */}
+        <div className="w-1/2 flex flex-col">
+          <div className="flex items-center justify-between p-4 border-b border-border">
+            <h3 className="font-medium">识别结果</h3>
+            {ocrResults.length > 0 && (
+              <div className="flex space-x-2">
+                <button
+                  onClick={handleCopyText}
+                  className="btn btn-ghost p-2"
+                  title="复制文本"
+                >
+                  <Copy size={16} />
+                </button>
+                <button
+                  onClick={handleDownloadText}
+                  className="btn btn-ghost p-2"
+                  title="下载文本"
+                >
+                  <Download size={16} />
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="flex-1 overflow-auto p-4">
+            {isProcessing ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                  <p className="text-muted-foreground">正在识别文字...</p>
+                </div>
+              </div>
+            ) : ocrResults.length === 0 ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center text-muted-foreground">
+                  <Settings size={48} className="mx-auto mb-4 opacity-50" />
+                  <p>暂无识别结果</p>
+                  <p className="text-sm">点击"开始识别"按钮开始OCR处理</p>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {ocrResults.map((result, index) => (
+                  <div key={index} className="card p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <span className="text-xs text-muted-foreground">
+                        第 {result.page} 页
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        置信度: {Math.round(result.confidence * 100)}%
+                      </span>
+                    </div>
+                    <p className="text-sm leading-relaxed">{result.text}</p>
+                  </div>
+                ))}
+                
+                <div className="mt-6 p-4 bg-muted rounded-lg">
+                  <h4 className="font-medium mb-2">完整文本</h4>
+                  <div className="text-sm leading-relaxed whitespace-pre-wrap">
+                    {ocrResults.map(result => result.text).join('\n\n')}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
-  );
-};
+  )
+}

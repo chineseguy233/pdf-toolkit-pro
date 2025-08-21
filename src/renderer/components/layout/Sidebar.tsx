@@ -1,151 +1,121 @@
-import React, { useState } from 'react';
-import { Button } from '../common/Button';
-import { FileList } from '../common/FileList';
-import { FileDropZone } from '../common/FileDropZone';
-import { useFileStore } from '../../store/useFileStore';
-import { PDFDocument } from '../../services/FileImportService';
+import React from 'react'
+import { FileText, Eye, Zap, Plus, X } from 'lucide-react'
+import type { PDFFile } from '@shared/types'
 
-const Sidebar: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('files');
-  const { documents, selectedDocumentId, addDocuments, selectDocument } = useFileStore();
+interface SidebarProps {
+  files: PDFFile[]
+  currentFile: PDFFile | null
+  activeTab: 'pdf' | 'ocr' | 'batch'
+  onTabChange: (tab: 'pdf' | 'ocr' | 'batch') => void
+  onFileSelect: (file: PDFFile) => void
+  onFileRemove: (fileId: string) => void
+  onFilesAdd: (files: File[]) => void
+}
+
+export default function Sidebar({
+  files,
+  currentFile,
+  activeTab,
+  onTabChange,
+  onFileSelect,
+  onFileRemove,
+  onFilesAdd
+}: SidebarProps) {
+  const handleFileInput = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(event.target.files || [])
+    onFilesAdd(selectedFiles)
+  }
 
   const tabs = [
-    { id: 'files', label: '文件', icon: 'folder' },
-    { id: 'recent', label: '最近', icon: 'clock' },
-    { id: 'bookmarks', label: '书签', icon: 'bookmark' }
-  ];
-
-  const handleFilesImported = (newDocuments: PDFDocument[]) => {
-    addDocuments(newDocuments);
-  };
-
-  const handleDocumentSelect = (document: PDFDocument) => {
-    selectDocument(document.id);
-  };
-
-  const handleFileSelect = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.pdf,application/pdf';
-    input.multiple = true;
-    
-    input.onchange = async (e) => {
-      const target = e.target as HTMLInputElement;
-      if (target.files) {
-        const files = Array.from(target.files);
-        // 这里会触发FileDropZone的导入逻辑
-        const event = new CustomEvent('fileSelect', { detail: files });
-        document.dispatchEvent(event);
-      }
-    };
-    
-    input.click();
-  };
-
-  const renderIcon = (iconType: string) => {
-    const iconClass = "w-4 h-4";
-    switch (iconType) {
-      case 'folder':
-        return (
-          <svg className={iconClass} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-5l-2-2H5a2 2 0 00-2 2z" />
-          </svg>
-        );
-      case 'clock':
-        return (
-          <svg className={iconClass} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        );
-      case 'bookmark':
-        return (
-          <svg className={iconClass} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-          </svg>
-        );
-      default:
-        return null;
-    }
-  };
+    { id: 'pdf' as const, label: 'PDF查看', icon: Eye },
+    { id: 'ocr' as const, label: 'OCR识别', icon: FileText },
+    { id: 'batch' as const, label: '批量处理', icon: Zap }
+  ]
 
   return (
-    <div className="h-full flex flex-col">
-      {/* 标签页导航 */}
-      <div className="flex border-b border-gray-200">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 flex items-center justify-center space-x-1 py-2 px-3 text-sm font-medium transition-colors ${
-              activeTab === tab.id
-                ? 'text-primary border-b-2 border-primary bg-blue-50'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-            }`}
-          >
-            {renderIcon(tab.icon)}
-            <span>{tab.label}</span>
-          </button>
-        ))}
+    <div className="w-80 bg-card border-r border-border flex flex-col">
+      {/* 标签页 */}
+      <div className="flex border-b border-border">
+        {tabs.map((tab) => {
+          const Icon = tab.icon
+          return (
+            <button
+              key={tab.id}
+              onClick={() => onTabChange(tab.id)}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 px-2 text-sm font-medium transition-colors ${
+                activeTab === tab.id
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+              }`}
+            >
+              <Icon size={16} />
+              {tab.label}
+            </button>
+          )
+        })}
       </div>
 
-      {/* 内容区域 */}
-      <div className="flex-1 overflow-y-auto p-3">
-        {activeTab === 'files' && (
-          <div className="space-y-4">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="w-full justify-start"
-              onClick={handleFileSelect}
-            >
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              打开文件
-            </Button>
-            
-            {documents.length > 0 && (
-              <>
-                <div className="text-xs text-gray-500 mb-2">
-                  已导入文件 ({documents.length})
-                </div>
-                <FileList
-                  documents={documents}
-                  selectedDocumentId={selectedDocumentId}
-                  onDocumentSelect={handleDocumentSelect}
-                />
-              </>
-            )}
-          </div>
-        )}
+      {/* 文件列表 */}
+      <div className="flex-1 overflow-hidden flex flex-col">
+        <div className="p-4 border-b border-border">
+          <label className="btn btn-primary w-full cursor-pointer">
+            <Plus size={16} className="mr-2" />
+            添加PDF文件
+            <input
+              type="file"
+              multiple
+              accept=".pdf"
+              onChange={handleFileInput}
+              className="hidden"
+            />
+          </label>
+        </div>
 
-        {activeTab === 'recent' && (
-          <div className="space-y-2">
-            <div className="text-sm text-gray-600">最近打开的文件将显示在这里</div>
-            {documents.slice(0, 5).map((doc) => (
-              <div key={doc.id} className="p-2 rounded hover:bg-gray-100 cursor-pointer text-sm">
-                <div className="font-medium truncate">{doc.fileName}</div>
-                <div className="text-xs text-gray-500">
-                  {new Intl.DateTimeFormat('zh-CN', {
-                    month: 'short',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  }).format(doc.modifiedAt)}
+        <div className="flex-1 overflow-y-auto p-2">
+          {files.length === 0 ? (
+            <div className="text-center text-muted-foreground py-8">
+              <FileText size={48} className="mx-auto mb-4 opacity-50" />
+              <p>暂无PDF文件</p>
+              <p className="text-sm">点击上方按钮添加文件</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {files.map((file) => (
+                <div
+                  key={file.id}
+                  className={`group p-3 rounded-lg border cursor-pointer transition-colors ${
+                    currentFile?.id === file.id
+                      ? 'bg-primary/10 border-primary'
+                      : 'bg-card border-border hover:bg-accent'
+                  }`}
+                  onClick={() => onFileSelect(file)}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm font-medium truncate" title={file.name}>
+                        {file.name}
+                      </h4>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {(file.size / 1024 / 1024).toFixed(2)} MB
+                        {file.pages > 0 && ` • ${file.pages} 页`}
+                      </p>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onFileRemove(file.id)
+                      }}
+                      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-destructive hover:text-destructive-foreground rounded transition-all"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {activeTab === 'bookmarks' && (
-          <div className="space-y-2">
-            <div className="text-sm text-gray-600">书签功能即将推出</div>
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
-  );
-};
-
-export default Sidebar;
+  )
+}

@@ -1,64 +1,37 @@
-import { create } from 'zustand';
-import { PDFDocument } from '../services/FileImportService';
+import { create } from 'zustand'
+import type { PDFFile } from '@shared/types'
 
 interface FileStore {
-  documents: PDFDocument[];
-  selectedDocumentId: string | null;
-  isLoading: boolean;
-  
-  // Actions
-  addDocuments: (documents: PDFDocument[]) => void;
-  removeDocument: (id: string) => void;
-  selectDocument: (id: string | null) => void;
-  setLoading: (loading: boolean) => void;
-  clearDocuments: () => void;
-  
-  // Computed properties
-  selectedFile: File | null;
-  selectedDocument: PDFDocument | null;
+  files: PDFFile[]
+  currentFile: PDFFile | null
+  setCurrentFile: (file: PDFFile | null) => void
+  addFiles: (files: PDFFile[]) => void
+  removeFile: (fileId: string) => void
+  updateFile: (fileId: string, updates: Partial<PDFFile>) => void
+  clearFiles: () => void
 }
 
 export const useFileStore = create<FileStore>((set, get) => ({
-  documents: [],
-  selectedDocumentId: null,
-  isLoading: false,
-
-  addDocuments: (documents) =>
-    set((state) => ({
-      documents: [...state.documents, ...documents],
-    })),
-
-  removeDocument: (id) =>
-    set((state) => ({
-      documents: state.documents.filter((doc) => doc.id !== id),
-      selectedDocumentId: state.selectedDocumentId === id ? null : state.selectedDocumentId,
-    })),
-
-  selectDocument: (id) =>
-    set(() => ({
-      selectedDocumentId: id,
-    })),
-
-  setLoading: (loading) =>
-    set(() => ({
-      isLoading: loading,
-    })),
-
-  clearDocuments: () =>
-    set(() => ({
-      documents: [],
-      selectedDocumentId: null,
-    })),
-
-  // Computed properties
-  get selectedFile() {
-    const state = get();
-    const selectedDoc = state.documents.find(doc => doc.id === state.selectedDocumentId);
-    return selectedDoc?.file || null;
-  },
-
-  get selectedDocument() {
-    const state = get();
-    return state.documents.find(doc => doc.id === state.selectedDocumentId) || null;
-  },
-}));
+  files: [],
+  currentFile: null,
+  
+  setCurrentFile: (file) => set({ currentFile: file }),
+  
+  addFiles: (newFiles) => set((state) => ({
+    files: [...state.files, ...newFiles]
+  })),
+  
+  removeFile: (fileId) => set((state) => ({
+    files: state.files.filter(f => f.id !== fileId),
+    currentFile: state.currentFile?.id === fileId ? null : state.currentFile
+  })),
+  
+  updateFile: (fileId, updates) => set((state) => ({
+    files: state.files.map(f => f.id === fileId ? { ...f, ...updates } : f),
+    currentFile: state.currentFile?.id === fileId 
+      ? { ...state.currentFile, ...updates } 
+      : state.currentFile
+  })),
+  
+  clearFiles: () => set({ files: [], currentFile: null })
+}))

@@ -1,17 +1,33 @@
 {
-  "extends": "./tsconfig.json",
   "compilerOptions": {
     "target": "ES2020",
+    "lib": ["ES2020"],
     "module": "CommonJS",
-    "outDir": "dist/main",
+    "moduleResolution": "node",
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
     "noEmit": false,
-    "skipLibCheck": true
+    "outDir": "dist/main",
+    "strict": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noFallthroughCasesInSwitch": true,
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["src/shared/*"]
+    },
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true
   },
   "include": [
-    "src/main/**/*.ts",
-    "src/shared/**/*.ts"
+    "src/main/**/*",
+    "src/shared/**/*"
   ],
   "exclude": [
-    "src/renderer"
+    "src/renderer/**/*",
+    "node_modules",
+    "dist"
   ]
 }

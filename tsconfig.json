@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2020",
+    "useDefineForClassFields": true,
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
@@ -16,19 +17,16 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@main/*": ["src/main/*"],
-      "@renderer/*": ["src/renderer/*"],
-      "@shared/*": ["src/shared/*"]
+      "@/*": ["src/renderer/*"],
+      "@shared/*": ["src/shared/*"],
+      "@main/*": ["src/main/*"]
     }
   },
   "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "vite.config.ts"
+    "src/renderer/**/*",
+    "src/shared/**/*"
   ],
-  "exclude": [
-    "node_modules",
-    "dist"
+  "references": [
+    { "path": "./tsconfig.main.json" }
   ]
 }
