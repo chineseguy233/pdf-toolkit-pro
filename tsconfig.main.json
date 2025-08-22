@@ -19,14 +19,15 @@
     },
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "composite": true
   },
   "include": [
-    "src/main/**/*",
-    "src/shared/**/*"
+    "src/main/**/*"
   ],
   "exclude": [
     "src/renderer/**/*",
+    "src/shared/**/*",
     "node_modules",
     "dist"
   ]

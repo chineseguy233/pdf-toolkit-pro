@@ -31,7 +31,7 @@ export default function App() {
       const pdfFiles: PDFFile[] = selectedFiles.map(file => ({
         id: crypto.randomUUID(),
         name: file.name,
-        path: file.path || '',
+        path: (file as any).path || file.name,
         size: file.size,
         pages: 0, // 将在加载时计算
         createdAt: new Date(),

@@ -133,7 +133,7 @@ export const InlineTextEditor: React.FC<InlineTextEditorProps> = ({
 
   const handleCompositionEnd = useCallback((event: React.CompositionEvent) => {
     setIsComposing(false);
-    setCurrentText(event.currentTarget.value);
+    setCurrentText((event.currentTarget as HTMLInputElement).value);
   }, []);
 
   // 点击外部区域完成编辑

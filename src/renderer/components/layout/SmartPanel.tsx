@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
-import { Button } from '../common/Button';
-import { OCRPanel } from '../ocr/OCRPanel';
+import Button from '../common/Button';
+import OCRPanel from '../ocr/OCRPanel';
 import { OCRResultViewer } from '../ocr/OCRResultViewer';
-import { BatchProcessingPanel } from '../batch/BatchProcessingPanel';
+import LoadingSpinner from '../common/LoadingSpinner';
+import BatchProcessingPanel from '../batch/BatchProcessingPanel';
+import { SmartOrganizePanel } from '../smart/SmartOrganizePanel';
 
 interface SmartPanelProps {
   className?: string;
 }
 
 export const SmartPanel: React.FC<SmartPanelProps> = ({ className = '' }) => {
-  const [activeTab, setActiveTab] = useState<'batch' | 'ocr' | 'properties' | 'history'>('batch');
+  const [activeTab, setActiveTab] = useState<'organize' | 'batch' | 'ocr' | 'properties' | 'history'>('organize');
   const [ocrResults, setOcrResults] = useState<any[]>([]);
 
   const handleOCRComplete = (results: any[]) => {
@@ -18,6 +20,7 @@ export const SmartPanel: React.FC<SmartPanelProps> = ({ className = '' }) => {
   };
 
   const tabs = [
+    { id: 'organize', label: '智能整理', icon: 'folder' },
     { id: 'batch', label: '批量处理', icon: 'sparkles' },
     { id: 'ocr', label: 'OCR识别', icon: 'scan' },
     { id: 'properties', label: '属性', icon: 'info' },
@@ -45,6 +48,12 @@ export const SmartPanel: React.FC<SmartPanelProps> = ({ className = '' }) => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         );
+      case 'folder':
+        return (
+          <svg className={iconClass} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+          </svg>
+        );
       case 'clock':
         return (
           <svg className={iconClass} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -56,22 +65,28 @@ export const SmartPanel: React.FC<SmartPanelProps> = ({ className = '' }) => {
     }
   };
 
+  const renderOrganizeTab = () => (
+    <div className="h-full">
+      <SmartOrganizePanel selectedFiles={[]} />
+    </div>
+  );
+
   const renderBatchTab = () => (
     <div className="h-full">
-      <BatchProcessingPanel className="h-full" />
+      <BatchProcessingPanel files={[]} />
     </div>
   );
 
   const renderOCRTab = () => (
     <div className="space-y-4">
-      <OCRPanel onOCRComplete={handleOCRComplete} />
+      <OCRPanel file={null as any} />
       {ocrResults.length > 0 && (
         <OCRResultViewer 
           results={ocrResults}
-          onWordSelect={(word) => {
+          onWordSelect={(word: any) => {
             console.log('选中单词:', word);
           }}
-          onTextEdit={(pageNumber, newText) => {
+          onTextEdit={(pageNumber: any, newText: any) => {
             console.log('编辑文本:', pageNumber, newText);
           }}
         />
@@ -133,6 +148,7 @@ export const SmartPanel: React.FC<SmartPanelProps> = ({ className = '' }) => {
 
       {/* 内容区域 */}
       <div className="flex-1 overflow-y-auto p-3">
+        {activeTab === 'organize' && renderOrganizeTab()}
         {activeTab === 'batch' && renderBatchTab()}
         {activeTab === 'ocr' && renderOCRTab()}
         {activeTab === 'properties' && renderPropertiesTab()}

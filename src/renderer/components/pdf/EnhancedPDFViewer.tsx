@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { Button } from '../common/Button';
-import { LoadingSpinner } from '../common/LoadingSpinner';
+import Button from '../common/Button';
+import LoadingSpinner from '../common/LoadingSpinner';
 import { TextEditingOverlay } from './TextEditingOverlay';
 import { pdfRenderingService, PDFDocument } from '../../services/PDFRenderingService';
 import { 
@@ -276,7 +276,7 @@ export const EnhancedPDFViewer: React.FC<EnhancedPDFViewerProps> = ({
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
-          <LoadingSpinner size="large" />
+          <LoadingSpinner size="lg" />
           <p className="mt-4 text-gray-600">正在加载PDF文档...</p>
         </div>
       </div>

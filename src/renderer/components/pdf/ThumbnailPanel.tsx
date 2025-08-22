@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { LoadingSpinner } from '../common/LoadingSpinner';
+import LoadingSpinner from '../common/LoadingSpinner';
 import { pdfRenderingService } from '../../services/PDFRenderingService';
 
 interface ThumbnailPanelProps {
@@ -106,7 +106,7 @@ export const ThumbnailPanel: React.FC<ThumbnailPanelProps> = ({
             >
               <div className="aspect-[3/4] bg-white flex items-center justify-center">
                 {thumbnail.isLoading ? (
-                  <LoadingSpinner size="small" />
+                  <LoadingSpinner size="sm" />
                 ) : thumbnail.dataUrl ? (
                   <img
                     src={thumbnail.dataUrl}

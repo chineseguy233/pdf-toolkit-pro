@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { OCRResult, OCRWord, OCRLine, OCRParagraph } from '../../services/OCREngine';
-import { Button } from '../common/Button';
+import Button from '../common/Button';
 
 interface OCRResultViewerProps {
   results: OCRResult[];

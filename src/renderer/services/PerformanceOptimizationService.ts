@@ -280,7 +280,7 @@ export class PerformanceDegradationManager {
 export class EditingQueueManager {
   private editingQueue: EditOperation[] = [];
   private isProcessing = false;
-  private debounceTimer: number | null = null;
+  private debounceTimer: NodeJS.Timeout | null = null;
   private performanceSettings: PerformanceSettings;
 
   constructor(performanceSettings: PerformanceSettings) {
@@ -431,7 +431,7 @@ export class ConcurrentEditingManager {
 export class MemoryManager {
   private objectPools = new Map<string, ObjectPool<any>>();
   private memoryThreshold = 150; // MB
-  private cleanupInterval: number | null = null;
+  private cleanupInterval: NodeJS.Timeout | null = null;
   private isMonitoring = false;
 
   constructor() {
