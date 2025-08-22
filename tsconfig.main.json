@@ -28,7 +28,6 @@
   "exclude": [
     "src/renderer/**/*",
     "src/shared/**/*",
-    "node_modules",
-    "dist"
+    "node_modules"
   ]
 }
