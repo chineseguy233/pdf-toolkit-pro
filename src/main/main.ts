@@ -18,10 +18,9 @@ function createWindow(): void {
     autoHideMenuBar: true,
     titleBarStyle: 'default',
     webPreferences: {
-      preload: join(__dirname, '../preload/preload.js'),
+      preload: join(__dirname, 'preload.js'),
       sandbox: false,
       contextIsolation: true,
-      enableRemoteModule: false,
       nodeIntegration: false
     }
   })
@@ -35,31 +34,27 @@ function createWindow(): void {
     return { action: 'deny' }
   })
 
-  // 开发环境：连接到Vite开发服务器
-  if (process.env.NODE_ENV === 'development') {
-    const rendererUrl = 'http://localhost:5175'
-    console.log('🚀 Loading PDF Toolkit Pro app:', rendererUrl)
-    
-    mainWindow.webContents.on('did-finish-load', () => {
-      console.log('✅ PDF Toolkit Pro loaded successfully!')
-      console.log('🎉 完整PDF应用就绪!')
-      // 保持开发者工具打开以便调试
-      mainWindow.webContents.openDevTools()
-    })
-    
-    mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
-      console.error('❌ Failed to load PDF app:', errorCode, errorDescription, validatedURL)
-      console.log('🔄 Falling back to React test...')
-      const testPageUrl = 'http://localhost:5174/standalone-react-test.html'
-      mainWindow.loadURL(testPageUrl)
-    })
-    
-    // 加载完整的PDF应用
-    mainWindow.loadURL(rendererUrl)
-  } else {
-    // 生产环境：加载构建后的文件
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
-  }
+  // 强制使用开发模式连接到Vite开发服务器
+  const rendererUrl = 'http://localhost:5176'
+  console.log('🚀 Loading PDF Toolkit Pro app:', rendererUrl)
+  
+  mainWindow.webContents.on('did-finish-load', () => {
+    console.log('✅ PDF Toolkit Pro loaded successfully!')
+    console.log('🎉 完整PDF应用就绪!')
+    // 保持开发者工具打开以便调试
+    mainWindow?.webContents.openDevTools()
+  })
+  
+  mainWindow.webContents.on('did-fail-load', (event: any, errorCode: any, errorDescription: any, validatedURL: any) => {
+    console.error('❌ Failed to load PDF app:', errorCode, errorDescription, validatedURL)
+    console.log('🔄 Retrying connection to Vite server...')
+    setTimeout(() => {
+      mainWindow?.loadURL(rendererUrl)
+    }, 2000)
+  })
+  
+  // 加载完整的PDF应用
+  mainWindow.loadURL(rendererUrl)
 }
 
 // 应用程序准备就绪时创建窗口
