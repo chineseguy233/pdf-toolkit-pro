@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React Test</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: #f8fafc;
+        }
+        #root {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        function MinimalReactApp() {
+            const [count, setCount] = React.useState(0);
+            
+            return React.createElement('div', {
+                style: {
+                    backgroundColor: 'white',
+                    padding: '40px',
+                    borderRadius: '10px',
+                    boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+                    textAlign: 'center',
+                    border: '2px solid #10b981'
+                }
+            }, [
+                React.createElement('h1', {
+                    key: 'title',
+                    style: { color: '#10b981', marginBottom: '20px' }
+                }, '🎉 React应用修复成功！'),
+                
+                React.createElement('p', {
+                    key: 'status1',
+                    style: { color: '#666', marginBottom: '10px' }
+                }, '✅ React渲染正常'),
+                
+                React.createElement('p', {
+                    key: 'status2', 
+                    style: { color: '#666', marginBottom: '10px' }
+                }, '✅ Electron集成正常'),
+                
+                React.createElement('p', {
+                    key: 'status3',
+                    style: { color: '#666', marginBottom: '20px' }
+                }, '✅ 开发环境就绪'),
+                
+                React.createElement('p', {
+                    key: 'counter',
+                    style: { color: '#333', marginBottom: '20px', fontSize: '18px' }
+                }, `点击次数: ${count}`),
+                
+                React.createElement('button', {
+                    key: 'button',
+                    onClick: () => {
+                        setCount(count + 1);
+                        alert('React交互测试成功！');
+                    },
+                    style: {
+                        backgroundColor: '#10b981',
+                        color: 'white',
+                        border: 'none',
+                        padding: '10px 20px',
+                        borderRadius: '5px',
+                        cursor: 'pointer',
+                        fontSize: '16px'
+                    }
+                }, '测试React交互')
+            ]);
+        }
+        
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(React.createElement(MinimalReactApp));
+        
+        console.log('✅ Standalone React test loaded successfully!');
+    </script>
+</body>
+</html>

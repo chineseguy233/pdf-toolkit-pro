@@ -1,1 +1,11 @@
-"use strict";const e=require("electron"),o={getVersion:()=>e.ipcRenderer.invoke("app:getVersion"),openFileDialog:()=>e.ipcRenderer.invoke("dialog:openFile"),saveFileDialog:n=>e.ipcRenderer.invoke("dialog:saveFile",n),onMenuAction:n=>e.ipcRenderer.on("menu-action",(r,i)=>n(i)),removeAllListeners:n=>e.ipcRenderer.removeAllListeners(n)};e.contextBridge.exposeInMainWorld("electronAPI",o);
+"use strict";
+const electron = require("electron");
+const electronAPI = {
+  getVersion: () => electron.ipcRenderer.invoke("app:getVersion"),
+  openFileDialog: () => electron.ipcRenderer.invoke("dialog:openFile"),
+  saveFileDialog: (defaultPath) => electron.ipcRenderer.invoke("dialog:saveFile", defaultPath),
+  onMenuAction: (callback) => electron.ipcRenderer.on("menu-action", (_, action) => callback(action)),
+  removeAllListeners: (channel) => electron.ipcRenderer.removeAllListeners(channel)
+};
+electron.contextBridge.exposeInMainWorld("electronAPI", electronAPI);
+//# sourceMappingURL=preload.js.map

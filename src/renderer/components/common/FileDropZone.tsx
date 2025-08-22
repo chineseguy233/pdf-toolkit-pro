@@ -16,18 +16,21 @@ export default function FileDropZone({
 }: FileDropZoneProps) {
   const [isDragOver, setIsDragOver] = useState(false)
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
+  const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
+    e.stopPropagation()
     setIsDragOver(true)
   }, [])
 
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
+  const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
+    e.stopPropagation()
     setIsDragOver(false)
   }, [])
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
+  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
+    e.stopPropagation()
     setIsDragOver(false)
     
     const files = Array.from(e.dataTransfer.files).filter(file => 
@@ -48,7 +51,16 @@ export default function FileDropZone({
 
   return (
     <div
-      className={`drop-zone ${isDragOver ? 'drag-over' : ''} ${className}`}
+      style={{
+        border: `2px dashed ${isDragOver ? '#007bff' : '#ccc'}`,
+        borderRadius: '8px',
+        padding: '40px',
+        textAlign: 'center',
+        backgroundColor: isDragOver ? '#f8f9ff' : '#fafafa',
+        transition: 'all 0.2s ease',
+        cursor: 'pointer'
+      }}
+      className={className}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}

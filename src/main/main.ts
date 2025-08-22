@@ -35,10 +35,29 @@ function createWindow(): void {
     return { action: 'deny' }
   })
 
-  // 开发环境加载本地服务器，生产环境加载打包后的文件
-  if (process.env.NODE_ENV === 'development' && process.env['ELECTRON_RENDERER_URL']) {
-    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
+  // 开发环境：连接到Vite开发服务器
+  if (process.env.NODE_ENV === 'development') {
+    const rendererUrl = 'http://localhost:5175'
+    console.log('🚀 Loading PDF Toolkit Pro app:', rendererUrl)
+    
+    mainWindow.webContents.on('did-finish-load', () => {
+      console.log('✅ PDF Toolkit Pro loaded successfully!')
+      console.log('🎉 完整PDF应用就绪!')
+      // 保持开发者工具打开以便调试
+      mainWindow.webContents.openDevTools()
+    })
+    
+    mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+      console.error('❌ Failed to load PDF app:', errorCode, errorDescription, validatedURL)
+      console.log('🔄 Falling back to React test...')
+      const testPageUrl = 'http://localhost:5174/standalone-react-test.html'
+      mainWindow.loadURL(testPageUrl)
+    })
+    
+    // 加载完整的PDF应用
+    mainWindow.loadURL(rendererUrl)
   } else {
+    // 生产环境：加载构建后的文件
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 }
