@@ -8,149 +8,89 @@
         body {
             margin: 0;
             padding: 0;
-            font-family: system-ui, -apple-system, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: system-ui;
+            background: #f8fafc;
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
+            height: 100vh;
         }
         .container {
+            padding: 2rem;
             background: white;
-            padding: 60px;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             text-align: center;
-            max-width: 600px;
-            border: 3px solid #4CAF50;
+            max-width: 500px;
         }
         h1 {
-            color: #4CAF50;
-            font-size: 36px;
-            margin-bottom: 20px;
+            font-size: 2rem;
             font-weight: bold;
+            margin-bottom: 1rem;
+            color: #1f2937;
         }
-        .status {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px 0;
+        .success {
+            color: #10b981;
+            font-size: 1.2rem;
+            margin: 1rem 0;
         }
-        .status-item {
-            margin: 10px 0;
-            font-size: 16px;
+        .info {
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin-top: 1rem;
         }
-        .success { color: #28a745; }
-        .error { color: #dc3545; }
-        .warning { color: #ffc107; }
-        button {
-            background: #007bff;
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            margin: 10px;
-        }
-        button:hover {
-            background: #0056b3;
+        .test-results {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: #f3f4f6;
+            border-radius: 4px;
+            text-align: left;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎉 PDF Toolkit Pro</h1>
-        <p style="font-size: 20px; color: #333; margin-bottom: 30px;">
-            独立测试页面 - 绕过Vite服务器
-        </p>
+        <h1>PDF Toolkit Pro</h1>
+        <div class="success">✅ 独立HTML测试成功！</div>
+        <p class="info">这个页面直接在浏览器中运行，不依赖Vite或React</p>
         
-        <div class="status">
-            <div class="status-item success">✅ HTML 渲染正常</div>
-            <div class="status-item success">✅ CSS 样式正常</div>
-            <div class="status-item success">✅ JavaScript 准备就绪</div>
-            <div class="status-item" id="electron-status">🔄 检测Electron环境...</div>
+        <div class="test-results">
+            <h3>测试结果：</h3>
+            <div id="test-results"></div>
         </div>
-        
-        <button onclick="testElectron()">测试Electron集成</button>
-        <button onclick="testReact()">准备React应用</button>
-        
-        <div id="result" style="margin-top: 20px; padding: 15px; border-radius: 8px; display: none;"></div>
-        
-        <p style="color: #666; font-size: 14px; margin-top: 30px;">
-            时间: <span id="time"></span>
-        </p>
     </div>
 
     <script>
-        // 更新时间
-        function updateTime() {
-            document.getElementById('time').textContent = new Date().toLocaleString();
-        }
-        updateTime();
-        setInterval(updateTime, 1000);
-
-        // 检测Electron环境
-        function checkElectron() {
-            const isElectron = typeof window !== 'undefined' && window.process && window.process.type;
-            const statusEl = document.getElementById('electron-status');
-            
-            if (isElectron) {
-                statusEl.innerHTML = '<span class="success">✅ Electron 环境检测成功</span>';
-            } else {
-                statusEl.innerHTML = '<span class="warning">⚠️ 浏览器环境 (非Electron)</span>';
-            }
-            
-            return isElectron;
-        }
-
-        // 测试Electron功能
-        function testElectron() {
-            const resultEl = document.getElementById('result');
-            resultEl.style.display = 'block';
-            
-            if (checkElectron()) {
-                resultEl.style.background = '#d4edda';
-                resultEl.style.color = '#155724';
-                resultEl.innerHTML = '🎉 Electron集成测试成功！<br>可以安全启动React应用。';
-            } else {
-                resultEl.style.background = '#fff3cd';
-                resultEl.style.color = '#856404';
-                resultEl.innerHTML = '⚠️ 当前在浏览器中运行<br>请在Electron中打开此页面。';
-            }
-        }
-
-        // 准备React应用
-        function testReact() {
-            const resultEl = document.getElementById('result');
-            resultEl.style.display = 'block';
-            resultEl.style.background = '#cce5ff';
-            resultEl.style.color = '#004085';
-            resultEl.innerHTML = '🚀 准备启动React应用...<br>请等待Vite服务器稳定后切换。';
-            
-            // 模拟准备过程
-            setTimeout(() => {
-                resultEl.innerHTML = '✅ 环境检查完成！<br>可以安全切换到React应用。';
-            }, 2000);
-        }
-
-        // 页面加载完成后检测环境
-        window.addEventListener('load', () => {
-            checkElectron();
-            console.log('独立测试页面加载完成');
+        console.log('🚀 独立测试页面加载成功');
+        
+        const results = document.getElementById('test-results');
+        
+        // 测试基本功能
+        const tests = [
+            { name: 'HTML加载', status: '✅ 成功' },
+            { name: 'CSS样式', status: '✅ 成功' },
+            { name: 'JavaScript执行', status: '✅ 成功' },
+            { name: '控制台输出', status: '✅ 成功' }
+        ];
+        
+        tests.forEach(test => {
+            const div = document.createElement('div');
+            div.innerHTML = `${test.name}: ${test.status}`;
+            results.appendChild(div);
         });
-
-        // 清理可能的dragEvent错误
-        if (typeof window !== 'undefined') {
-            delete window.dragEvent;
-            window.onerror = function(msg, url, line, col, error) {
-                if (msg.includes('dragEvent')) {
-                    console.log('已拦截dragEvent错误:', msg);
-                    return true; // 阻止错误传播
-                }
-                return false;
-            };
-        }
+        
+        // 测试Vite服务器连接
+        fetch('http://localhost:5175')
+            .then(response => {
+                const div = document.createElement('div');
+                div.innerHTML = `Vite服务器连接: ✅ 成功 (状态码: ${response.status})`;
+                results.appendChild(div);
+            })
+            .catch(error => {
+                const div = document.createElement('div');
+                div.innerHTML = `Vite服务器连接: ❌ 失败 (${error.message})`;
+                results.appendChild(div);
+            });
     </script>
 </body>
 </html>

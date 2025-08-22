@@ -1,4 +1,12 @@
-import { BatchProcessingEngine, BatchJob, BatchJobStatus, WorkflowStep, StepType } from '../../../src/renderer/services/BatchProcessingEngine';
+import { 
+  BatchProcessingEngine, 
+  BatchJob, 
+  BatchJobStatus, 
+  ProcessingWorkflow,
+  WorkflowStep, 
+  StepType,
+  ErrorHandlingStrategy 
+} from '../../../src/renderer/services/BatchProcessingEngine';
 
 // Mock dependencies
 jest.mock('../../../src/renderer/services/OCRService');
@@ -17,118 +25,211 @@ describe('BatchProcessingEngine', () => {
 
   describe('Job Management', () => {
     it('should create a new batch job', async () => {
-      const workflow: WorkflowStep[] = [
-        {
-          id: 'step1',
-          type: StepType.OCR,
-          name: 'OCR识别',
-          config: { language: 'chi_sim' }
-        }
-      ];
+      const workflow: ProcessingWorkflow = {
+        id: 'workflow1',
+        name: '测试工作流',
+        description: '测试描述',
+        steps: [
+          {
+            id: 'step1',
+            type: StepType.OCR_RECOGNITION,
+            name: 'OCR识别',
+            parameters: { language: 'chi_sim' },
+            order: 1,
+            isEnabled: true,
+            onError: ErrorHandlingStrategy.CONTINUE
+          }
+        ],
+        conditions: [],
+        isTemplate: false
+      };
 
       const files = ['test1.pdf', 'test2.pdf'];
       const job = await engine.createJob('测试任务', files, workflow);
 
       expect(job).toBeDefined();
       expect(job.name).toBe('测试任务');
-      expect(job.files).toEqual(files);
-      expect(job.workflow.steps).toEqual(workflow);
+      expect(job.files.length).toBe(2);
+      expect(job.files[0].fileName).toBe('test1.pdf');
+      expect(job.files[1].fileName).toBe('test2.pdf');
+      expect(job.workflow.steps).toEqual(workflow.steps);
       expect(job.status).toBe(BatchJobStatus.PENDING);
     });
 
     it('should start a batch job', async () => {
-      const workflow: WorkflowStep[] = [
-        {
-          id: 'step1',
-          type: StepType.OCR,
-          name: 'OCR识别',
-          config: { language: 'chi_sim' }
-        }
-      ];
+      const workflow: ProcessingWorkflow = {
+        id: 'workflow1',
+        name: '测试工作流',
+        description: '测试描述',
+        steps: [
+          {
+            id: 'step1',
+            type: StepType.OCR_RECOGNITION,
+            name: 'OCR识别',
+            parameters: { language: 'chi_sim' },
+            order: 1,
+            isEnabled: true,
+            onError: ErrorHandlingStrategy.CONTINUE
+          }
+        ],
+        conditions: [],
+        isTemplate: false
+      };
 
       const job = await engine.createJob('测试任务', ['test.pdf'], workflow);
-      await engine.startJob(job.id);
-
+      
+      // 启动任务但不等待完成
+      const startPromise = engine.startJob(job.id);
+      
+      // 等待足够时间确保任务开始运行
+      await new Promise(resolve => setTimeout(resolve, 300));
       const updatedJob = engine.getJob(job.id);
       expect(updatedJob?.status).toBe(BatchJobStatus.RUNNING);
+      
+      // 等待任务完成
+      await startPromise;
     });
 
     it('should pause and resume a job', async () => {
-      const workflow: WorkflowStep[] = [
-        {
-          id: 'step1',
-          type: StepType.OCR,
-          name: 'OCR识别',
-          config: { language: 'chi_sim' }
-        }
-      ];
+      const workflow: ProcessingWorkflow = {
+        id: 'workflow1',
+        name: '测试工作流',
+        description: '测试描述',
+        steps: [
+          {
+            id: 'step1',
+            type: StepType.OCR_RECOGNITION,
+            name: 'OCR识别',
+            parameters: { language: 'chi_sim' },
+            order: 1,
+            isEnabled: true,
+            onError: ErrorHandlingStrategy.CONTINUE
+          }
+        ],
+        conditions: [],
+        isTemplate: false
+      };
 
       const job = await engine.createJob('测试任务', ['test.pdf'], workflow);
-      await engine.startJob(job.id);
       
+      // 启动任务
+      // 启动任务
+      const startPromise = engine.startJob(job.id);
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      // 暂停任务
       await engine.pauseJob(job.id);
       let updatedJob = engine.getJob(job.id);
       expect(updatedJob?.status).toBe(BatchJobStatus.PAUSED);
 
-      await engine.resumeJob(job.id);
+      // 恢复任务
+      // 恢复任务
+      // 恢复任务 - 不等待完成
+      const resumePromise = engine.resumeJob(job.id);
+      // 等待足够时间确保任务恢复并保持运行状态
+      await new Promise(resolve => setTimeout(resolve, 500));
       updatedJob = engine.getJob(job.id);
       expect(updatedJob?.status).toBe(BatchJobStatus.RUNNING);
+      
+      // 等待恢复完成
+      await resumePromise;
+      
+      // 等待任务完成
+      await startPromise;
     });
 
     it('should cancel a job', async () => {
-      const workflow: WorkflowStep[] = [
-        {
-          id: 'step1',
-          type: StepType.OCR,
-          name: 'OCR识别',
-          config: { language: 'chi_sim' }
-        }
-      ];
+      const workflow: ProcessingWorkflow = {
+        id: 'workflow1',
+        name: '测试工作流',
+        description: '测试描述',
+        steps: [
+          {
+            id: 'step1',
+            type: StepType.OCR_RECOGNITION,
+            name: 'OCR识别',
+            parameters: { language: 'chi_sim' },
+            order: 1,
+            isEnabled: true,
+            onError: ErrorHandlingStrategy.CONTINUE
+          }
+        ],
+        conditions: [],
+        isTemplate: false
+      };
 
       const job = await engine.createJob('测试任务', ['test.pdf'], workflow);
-      await engine.startJob(job.id);
+      
+      // 启动任务
+      // 启动任务
+      const startPromise = engine.startJob(job.id);
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      // 取消任务
       await engine.cancelJob(job.id);
-
       const updatedJob = engine.getJob(job.id);
       expect(updatedJob?.status).toBe(BatchJobStatus.CANCELLED);
+      
+      // 等待任务完成
+      await startPromise;
     });
   });
 
   describe('Progress Tracking', () => {
     it('should track job progress', async () => {
-      const workflow: WorkflowStep[] = [
-        {
-          id: 'step1',
-          type: StepType.OCR,
-          name: 'OCR识别',
-          config: { language: 'chi_sim' }
-        }
-      ];
+      const workflow: ProcessingWorkflow = {
+        id: 'workflow1',
+        name: '测试工作流',
+        description: '测试描述',
+        steps: [
+          {
+            id: 'step1',
+            type: StepType.OCR_RECOGNITION,
+            name: 'OCR识别',
+            parameters: { language: 'chi_sim' },
+            order: 1,
+            isEnabled: true,
+            onError: ErrorHandlingStrategy.CONTINUE
+          }
+        ],
+        conditions: [],
+        isTemplate: false
+      };
 
       const job = await engine.createJob('测试任务', ['test1.pdf', 'test2.pdf'], workflow);
       const progress = engine.getJobProgress(job.id);
 
       expect(progress).toBeDefined();
-      expect(progress.totalFiles).toBe(2);
-      expect(progress.processedFiles).toBe(0);
-      expect(progress.percentage).toBe(0);
+      expect(progress!.totalFiles).toBe(2);
+      expect(progress!.processedFiles).toBe(0);
+      expect(progress!.percentage).toBe(0);
     });
 
     it('should update progress during processing', async () => {
-      const workflow: WorkflowStep[] = [
-        {
-          id: 'step1',
-          type: StepType.OCR,
-          name: 'OCR识别',
-          config: { language: 'chi_sim' }
-        }
-      ];
+      const workflow: ProcessingWorkflow = {
+        id: 'workflow1',
+        name: '测试工作流',
+        description: '测试描述',
+        steps: [
+          {
+            id: 'step1',
+            type: StepType.OCR_RECOGNITION,
+            name: 'OCR识别',
+            parameters: { language: 'chi_sim' },
+            order: 1,
+            isEnabled: true,
+            onError: ErrorHandlingStrategy.CONTINUE
+          }
+        ],
+        conditions: [],
+        isTemplate: false
+      };
 
       const job = await engine.createJob('测试任务', ['test1.pdf', 'test2.pdf'], workflow);
       
       // 模拟处理进度更新
       const progressCallback = jest.fn();
-      engine.on('progress', progressCallback);
+      engine.on('progressUpdate', progressCallback);
       
       await engine.startJob(job.id);
       
@@ -141,14 +242,24 @@ describe('BatchProcessingEngine', () => {
 
   describe('Workflow Execution', () => {
     it('should execute OCR workflow step', async () => {
-      const workflow: WorkflowStep[] = [
-        {
-          id: 'step1',
-          type: StepType.OCR,
-          name: 'OCR识别',
-          config: { language: 'chi_sim' }
-        }
-      ];
+      const workflow: ProcessingWorkflow = {
+        id: 'workflow1',
+        name: '测试工作流',
+        description: '测试描述',
+        steps: [
+          {
+            id: 'step1',
+            type: StepType.OCR_RECOGNITION,
+            name: 'OCR识别',
+            parameters: { language: 'chi_sim' },
+            order: 1,
+            isEnabled: true,
+            onError: ErrorHandlingStrategy.CONTINUE
+          }
+        ],
+        conditions: [],
+        isTemplate: false
+      };
 
       const job = await engine.createJob('OCR任务', ['test.pdf'], workflow);
       await engine.startJob(job.id);
@@ -161,17 +272,27 @@ describe('BatchProcessingEngine', () => {
     });
 
     it('should execute file organization workflow step', async () => {
-      const workflow: WorkflowStep[] = [
-        {
-          id: 'step1',
-          type: StepType.FILE_ORGANIZATION,
-          name: '文件整理',
-          config: { 
-            pattern: '{year}/{month}',
-            createFolders: true 
+      const workflow: ProcessingWorkflow = {
+        id: 'workflow1',
+        name: '测试工作流',
+        description: '测试描述',
+        steps: [
+          {
+            id: 'step1',
+            type: StepType.ORGANIZE_FOLDERS,
+            name: '文件整理',
+            parameters: { 
+              pattern: '{year}/{month}',
+              createFolders: true 
+            },
+            order: 1,
+            isEnabled: true,
+            onError: ErrorHandlingStrategy.CONTINUE
           }
-        }
-      ];
+        ],
+        conditions: [],
+        isTemplate: false
+      };
 
       const job = await engine.createJob('整理任务', ['test.pdf'], workflow);
       await engine.startJob(job.id);
@@ -184,14 +305,24 @@ describe('BatchProcessingEngine', () => {
     });
 
     it('should handle workflow step failures', async () => {
-      const workflow: WorkflowStep[] = [
-        {
-          id: 'step1',
-          type: StepType.OCR,
-          name: 'OCR识别',
-          config: { language: 'invalid_lang' } // 无效配置
-        }
-      ];
+      const workflow: ProcessingWorkflow = {
+        id: 'workflow1',
+        name: '测试工作流',
+        description: '测试描述',
+        steps: [
+          {
+            id: 'step1',
+            type: StepType.OCR_RECOGNITION,
+            name: 'OCR识别',
+            parameters: { language: 'invalid_lang' }, // 无效配置
+            order: 1,
+            isEnabled: true,
+            onError: ErrorHandlingStrategy.CONTINUE
+          }
+        ],
+        conditions: [],
+        isTemplate: false
+      };
 
       const job = await engine.createJob('失败任务', ['nonexistent.pdf'], workflow);
       await engine.startJob(job.id);
@@ -200,23 +331,33 @@ describe('BatchProcessingEngine', () => {
       await new Promise(resolve => setTimeout(resolve, 200));
 
       const progress = engine.getJobProgress(job.id);
-      expect(progress.failedFiles).toBeGreaterThan(0);
+      expect(progress!.failedFiles).toBeGreaterThan(0);
     });
   });
 
   describe('Event System', () => {
     it('should emit job status change events', async () => {
       const statusCallback = jest.fn();
-      engine.on('jobStatusChanged', statusCallback);
+      engine.on('jobStatusChange', statusCallback);
 
-      const workflow: WorkflowStep[] = [
-        {
-          id: 'step1',
-          type: StepType.OCR,
-          name: 'OCR识别',
-          config: { language: 'chi_sim' }
-        }
-      ];
+      const workflow: ProcessingWorkflow = {
+        id: 'workflow1',
+        name: '测试工作流',
+        description: '测试描述',
+        steps: [
+          {
+            id: 'step1',
+            type: StepType.OCR_RECOGNITION,
+            name: 'OCR识别',
+            parameters: { language: 'chi_sim' },
+            order: 1,
+            isEnabled: true,
+            onError: ErrorHandlingStrategy.CONTINUE
+          }
+        ],
+        conditions: [],
+        isTemplate: false
+      };
 
       const job = await engine.createJob('测试任务', ['test.pdf'], workflow);
       await engine.startJob(job.id);
@@ -231,16 +372,26 @@ describe('BatchProcessingEngine', () => {
 
     it('should emit progress events', async () => {
       const progressCallback = jest.fn();
-      engine.on('progress', progressCallback);
+      engine.on('progressUpdate', progressCallback);
 
-      const workflow: WorkflowStep[] = [
-        {
-          id: 'step1',
-          type: StepType.OCR,
-          name: 'OCR识别',
-          config: { language: 'chi_sim' }
-        }
-      ];
+      const workflow: ProcessingWorkflow = {
+        id: 'workflow1',
+        name: '测试工作流',
+        description: '测试描述',
+        steps: [
+          {
+            id: 'step1',
+            type: StepType.OCR_RECOGNITION,
+            name: 'OCR识别',
+            parameters: { language: 'chi_sim' },
+            order: 1,
+            isEnabled: true,
+            onError: ErrorHandlingStrategy.CONTINUE
+          }
+        ],
+        conditions: [],
+        isTemplate: false
+      };
 
       const job = await engine.createJob('测试任务', ['test.pdf'], workflow);
       await engine.startJob(job.id);
@@ -254,14 +405,24 @@ describe('BatchProcessingEngine', () => {
 
   describe('Resource Management', () => {
     it('should limit concurrent jobs', async () => {
-      const workflow: WorkflowStep[] = [
-        {
-          id: 'step1',
-          type: StepType.OCR,
-          name: 'OCR识别',
-          config: { language: 'chi_sim' }
-        }
-      ];
+      const workflow: ProcessingWorkflow = {
+        id: 'workflow1',
+        name: '测试工作流',
+        description: '测试描述',
+        steps: [
+          {
+            id: 'step1',
+            type: StepType.OCR_RECOGNITION,
+            name: 'OCR识别',
+            parameters: { language: 'chi_sim' },
+            order: 1,
+            isEnabled: true,
+            onError: ErrorHandlingStrategy.CONTINUE
+          }
+        ],
+        conditions: [],
+        isTemplate: false
+      };
 
       // 创建多个任务
       const jobs = await Promise.all([
@@ -284,14 +445,24 @@ describe('BatchProcessingEngine', () => {
     });
 
     it('should clean up completed jobs', async () => {
-      const workflow: WorkflowStep[] = [
-        {
-          id: 'step1',
-          type: StepType.OCR,
-          name: 'OCR识别',
-          config: { language: 'chi_sim' }
-        }
-      ];
+      const workflow: ProcessingWorkflow = {
+        id: 'workflow1',
+        name: '测试工作流',
+        description: '测试描述',
+        steps: [
+          {
+            id: 'step1',
+            type: StepType.OCR_RECOGNITION,
+            name: 'OCR识别',
+            parameters: { language: 'chi_sim' },
+            order: 1,
+            isEnabled: true,
+            onError: ErrorHandlingStrategy.CONTINUE
+          }
+        ],
+        conditions: [],
+        isTemplate: false
+      };
 
       const job = await engine.createJob('测试任务', ['test.pdf'], workflow);
       await engine.startJob(job.id);

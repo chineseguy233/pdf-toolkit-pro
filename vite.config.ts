@@ -19,13 +19,14 @@ export default defineConfig({
     sourcemap: false,
     minify: 'terser',
     rollupOptions: {
-      input: './src/renderer/index.html'
+      input: resolve(__dirname, 'src/renderer/index.html')
     }
   },
+  root: 'src/renderer',
   server: {
-    port: 5175,
+    port: 5176,
     host: '0.0.0.0',
-    strictPort: false,
+    strictPort: true,
     open: false
   },
   optimizeDeps: {

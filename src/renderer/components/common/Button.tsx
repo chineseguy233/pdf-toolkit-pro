@@ -1,40 +1,42 @@
-import React from 'react';
+import React from 'react'
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
-  size?: 'sm' | 'md' | 'lg';
-  children: React.ReactNode;
+  variant?: 'default' | 'ghost' | 'outline'
+  size?: 'sm' | 'md' | 'lg'
+  'data-testid'?: string
 }
 
-const Button: React.FC<ButtonProps> = ({
-  variant = 'primary',
-  size = 'md',
-  className = '',
-  children,
-  ...props
-}) => {
-  const baseClasses = 'inline-flex items-center justify-center font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
+export default function Button({ 
+  variant = 'default', 
+  size = 'md', 
+  className = '', 
+  children, 
+  'data-testid': testId,
+  ...props 
+}: ButtonProps) {
+  const baseClasses = 'inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none'
   
   const variantClasses = {
-    primary: 'bg-primary text-white hover:bg-blue-700 focus:ring-primary',
-    secondary: 'bg-secondary text-white hover:bg-gray-600 focus:ring-secondary',
-    outline: 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:ring-primary',
-    ghost: 'text-gray-700 hover:bg-gray-100 focus:ring-primary'
-  };
+    default: 'bg-primary text-primary-foreground hover:bg-primary/90',
+    ghost: 'hover:bg-accent hover:text-accent-foreground',
+    outline: 'border border-input hover:bg-accent hover:text-accent-foreground'
+  }
   
   const sizeClasses = {
-    sm: 'px-2 py-1 text-sm',
-    md: 'px-4 py-2 text-sm',
-    lg: 'px-6 py-3 text-base'
-  };
+    sm: 'h-8 px-3 text-sm',
+    md: 'h-10 px-4 py-2',
+    lg: 'h-12 px-8'
+  }
   
-  const classes = `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`;
+  const classes = `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`
   
   return (
-    <button className={classes} {...props}>
+    <button 
+      data-testid={testId}
+      className={classes} 
+      {...props}
+    >
       {children}
     </button>
-  );
-};
-
-export default Button;
+  )
+}

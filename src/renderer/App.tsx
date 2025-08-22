@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react'
 import MainLayout from './components/layout/MainLayout'
-import Sidebar from './components/layout/Sidebar'
 import PDFViewer from './components/pdf/PDFViewer'
 import OCRPanel from './components/ocr/OCRPanel'
 import BatchProcessingPanel from './components/batch/BatchProcessingPanel'
+import SmartOrganizePanel from './components/smart/SmartOrganizePanel'
 import FileDropZone from './components/common/FileDropZone'
 import Toast from './components/common/Toast'
 import { useFileStore } from './store/useFileStore'
 import type { PDFFile } from '@shared/types'
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'pdf' | 'ocr' | 'batch'>('pdf')
+  const [activeTab, setActiveTab] = useState<'pdf' | 'ocr' | 'batch' | 'smart'>('pdf')
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null)
   
   const { 
@@ -31,23 +31,26 @@ export default function App() {
       const pdfFiles: PDFFile[] = selectedFiles.map(file => ({
         id: crypto.randomUUID(),
         name: file.name,
-        path: (file as any).path || file.name,
+        path: (file as any).path || '',
         size: file.size,
-        pages: 0, // 将在加载时计算
+        type: file.type,
+        lastModified: new Date(file.lastModified),
+        file: file,
+        pages: 0,
         createdAt: new Date(),
         modifiedAt: new Date()
       }))
       
       addFiles(pdfFiles)
       
-      if (pdfFiles.length > 0 && !currentFile) {
+      if (!currentFile && pdfFiles.length > 0) {
         setCurrentFile(pdfFiles[0])
       }
       
-      showToast(`成功添加 ${pdfFiles.length} 个文件`, 'success')
+      showToast(`成功导入 ${pdfFiles.length} 个文件`, 'success')
     } catch (error) {
-      console.error('Error processing files:', error)
-      showToast('文件处理失败', 'error')
+      console.error('文件导入失败:', error)
+      showToast('文件导入失败', 'error')
     }
   }
 
@@ -82,6 +85,8 @@ export default function App() {
         return <OCRPanel file={currentFile} />
       case 'batch':
         return <BatchProcessingPanel files={files} />
+      case 'smart':
+        return <SmartOrganizePanel selectedFiles={files.map(f => f.id)} />
       default:
         return null
     }
@@ -89,22 +94,10 @@ export default function App() {
 
   return (
     <div className="h-screen flex flex-col bg-background text-foreground">
-      <MainLayout>
-        <div className="flex h-full">
-          <Sidebar
-            files={files}
-            currentFile={currentFile}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            onFileSelect={handleFileSelect}
-            onFileRemove={handleFileRemove}
-            onFilesAdd={handleFilesSelected}
-          />
-          
-          <main className="flex-1 flex flex-col overflow-hidden">
-            {renderMainContent()}
-          </main>
-        </div>
+      <MainLayout activeTab={activeTab} onTabChange={setActiveTab}>
+        <main className="flex-1 flex flex-col overflow-hidden">
+          {renderMainContent()}
+        </main>
       </MainLayout>
       
       {toast && (

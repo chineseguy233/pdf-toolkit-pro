@@ -41,10 +41,7 @@ function createWindow() {
     });
     mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
         console.error('❌ Failed to load PDF app:', errorCode, errorDescription, validatedURL);
-        console.log('🔄 Retrying connection to Vite server...');
-        setTimeout(() => {
-            mainWindow?.loadURL(rendererUrl);
-        }, 2000);
+        console.log('❌ Please check if Vite dev server is running on http://localhost:5176');
     });
     // 加载完整的PDF应用
     mainWindow.loadURL(rendererUrl);

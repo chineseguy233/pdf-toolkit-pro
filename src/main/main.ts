@@ -47,10 +47,7 @@ function createWindow(): void {
   
   mainWindow.webContents.on('did-fail-load', (event: any, errorCode: any, errorDescription: any, validatedURL: any) => {
     console.error('❌ Failed to load PDF app:', errorCode, errorDescription, validatedURL)
-    console.log('🔄 Retrying connection to Vite server...')
-    setTimeout(() => {
-      mainWindow?.loadURL(rendererUrl)
-    }, 2000)
+    console.log('❌ Please check if Vite dev server is running on http://localhost:5176')
   })
   
   // 加载完整的PDF应用

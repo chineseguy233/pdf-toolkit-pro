@@ -27,7 +27,7 @@ interface FileAnalysisResult {
   error?: string;
 }
 
-export const SmartOrganizePanel: React.FC<SmartOrganizePanelProps> = ({
+const SmartOrganizePanel: React.FC<SmartOrganizePanelProps> = ({
   selectedFiles,
   onOrganizeComplete
 }) => {
@@ -371,6 +371,8 @@ export const SmartOrganizePanel: React.FC<SmartOrganizePanelProps> = ({
     </div>
   );
 };
+
+export default SmartOrganizePanel;
 
 // 文件夹树形视图组件
 const FolderTreeView: React.FC<{ folder: FolderStructure; level?: number }> = ({

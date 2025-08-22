@@ -136,7 +136,45 @@ TypeScript配置文件 `tsconfig.main.json` 中错误地排除了输出目录 `d
 3. **进程监控**：使用系统工具验证应用进程状态
 4. **日志分析**：关注应用启动时的控制台输出信息
 
+#### 阶段5：预加载脚本路径修复 (14:36-14:42)
+**新发现的问题：**
+从用户提供的浏览器调试截图发现：
+```
+Unable to load preload script: D:\appspace\pdftool\dist\preload.js
+```
+
+**问题分析：**
+- 主进程中预加载脚本路径配置错误：`../preload.js`
+- 实际编译后文件结构：两个文件都在 `dist/main/` 目录下
+- 正确路径应该是：`preload.js`（同目录）
+
+**修复步骤：**
+1. 修改 `src/main/main.ts` 中的预加载脚本路径
+2. 删除旧的编译文件强制重新编译
+3. 验证编译后的JavaScript代码路径正确
+4. 重新启动Electron应用测试
+
+**修复前后对比：**
+```typescript
+// 修复前
+preload: join(__dirname, '../preload.js')
+
+// 修复后  
+preload: join(__dirname, 'preload.js')
+```
+
+**编译验证：**
+```javascript
+// 编译后的正确路径
+preload: (0, path_1.join)(__dirname, 'preload.js')
+```
+
+**修复结果：**
+- ✅ 应用启动无预加载脚本错误
+- ✅ 启动日志显示正常：`PDF Toolkit Pro loaded successfully!`
+- ✅ Git提交记录：`[main edff90d] 🔧 修复预加载脚本路径错误`
+
 ---
-**调试完成时间：** 2025年8月22日 14:22  
-**总耗时：** 约22分钟  
-**状态：** ✅ 问题完全解决，应用正常运行
+**调试完成时间：** 2025年8月22日 14:42  
+**总耗时：** 约42分钟  
+**状态：** ✅ 所有问题完全解决，应用正常运行

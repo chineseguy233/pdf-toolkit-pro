@@ -36,6 +36,7 @@ export class BatchTemplateManager {
 
   constructor() {
     this.initializeBuiltInTemplates();
+    this.loadTemplates();
   }
 
   // 获取所有模板
@@ -52,6 +53,43 @@ export class BatchTemplateManager {
   // 获取单个模板
   getTemplate(templateId: string): BatchTemplate | undefined {
     return this.templates.get(templateId);
+  }
+
+  // 创建自定义模板 (别名方法，兼容测试)
+  createTemplate(
+    name: string,
+    description: string,
+    category: TemplateCategory,
+    workflow: WorkflowStep[],
+    tags: string[] = []
+  ): BatchTemplate {
+    const templateId = this.generateTemplateId();
+    
+    const template: BatchTemplate = {
+      id: templateId,
+      name,
+      description,
+      category,
+      workflow: {
+        id: templateId,
+        name,
+        description,
+        steps: workflow,
+        conditions: [],
+        isTemplate: true
+      },
+      isBuiltIn: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      usageCount: 0,
+      tags
+    };
+
+    this.templates.set(templateId, template);
+    this.saveTemplates();
+    
+    console.log(`创建自定义模板: ${name}`);
+    return template;
   }
 
   // 创建自定义模板
@@ -90,42 +128,49 @@ export class BatchTemplateManager {
   }
 
   // 克隆模板
-  cloneTemplate(templateId: string, newName: string): string {
+  cloneTemplate(templateId: string, newName: string): BatchTemplate | undefined {
     const originalTemplate = this.templates.get(templateId);
     if (!originalTemplate) {
-      throw new Error('模板不存在');
+      return undefined;
     }
 
-    const clonedWorkflow: ProcessingWorkflow = {
-      ...originalTemplate.workflow,
-      id: this.generateTemplateId(),
+    const newTemplateId = this.generateTemplateId();
+    const clonedTemplate: BatchTemplate = {
+      ...originalTemplate,
+      id: newTemplateId,
       name: newName,
-      steps: originalTemplate.workflow.steps.map(step => ({
-        ...step,
-        id: this.generateStepId()
-      }))
+      description: `基于 "${originalTemplate.name}" 的副本`,
+      workflow: {
+        ...originalTemplate.workflow,
+        id: newTemplateId,
+        name: newName,
+        description: `基于 "${originalTemplate.name}" 的副本`,
+        steps: [...originalTemplate.workflow.steps] // 保持原始步骤ID
+      },
+      isBuiltIn: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      usageCount: 0,
+      tags: [...originalTemplate.tags, 'cloned']
     };
 
-    return this.createCustomTemplate(
-      newName,
-      `基于 "${originalTemplate.name}" 的副本`,
-      clonedWorkflow,
-      [...originalTemplate.tags, 'cloned']
-    );
+    this.templates.set(newTemplateId, clonedTemplate);
+    this.saveTemplates();
+    return clonedTemplate;
   }
 
   // 更新模板
-  updateTemplate(templateId: string, updates: Partial<BatchTemplate>): boolean {
+  updateTemplate(templateId: string, updates: Partial<BatchTemplate>): BatchTemplate | undefined {
     const template = this.templates.get(templateId);
     if (!template || template.isBuiltIn) {
-      return false;
+      return undefined;
     }
 
     Object.assign(template, updates, { updatedAt: new Date() });
     this.saveTemplates();
     
     console.log(`更新模板: ${template.name}`);
-    return true;
+    return template;
   }
 
   // 删除模板
@@ -182,6 +227,34 @@ export class BatchTemplateManager {
   // 获取模板使用统计
   getTemplateStats(templateId: string): TemplateUsageStats | undefined {
     return this.usageStats.get(templateId);
+  }
+
+  // 增加模板使用次数
+  incrementUsage(templateId: string): void {
+    const template = this.templates.get(templateId);
+    if (template) {
+      template.usageCount++;
+      template.updatedAt = new Date();
+      this.saveTemplates();
+    }
+  }
+
+  // 获取热门模板
+  getPopularTemplates(limit: number = 5): BatchTemplate[] {
+    return Array.from(this.templates.values())
+      .sort((a, b) => b.usageCount - a.usageCount)
+      .slice(0, limit);
+  }
+
+  // 获取最近使用的模板
+  getRecentTemplates(limit: number = 5): BatchTemplate[] {
+    return Array.from(this.templates.values())
+      .sort((a, b) => {
+        const dateA = a.updatedAt instanceof Date ? a.updatedAt : new Date(a.updatedAt);
+        const dateB = b.updatedAt instanceof Date ? b.updatedAt : new Date(b.updatedAt);
+        return dateB.getTime() - dateA.getTime();
+      })
+      .slice(0, limit);
   }
 
   // 获取推荐模板
@@ -531,15 +604,26 @@ export class BatchTemplateManager {
       
       // 加载自定义模板
       if (parsed.templates) {
-        parsed.templates.forEach((template: BatchTemplate) => {
-          this.templates.set(template.id, template);
+        parsed.templates.forEach((template: any) => {
+          // 确保日期对象正确转换
+          const processedTemplate: BatchTemplate = {
+            ...template,
+            createdAt: new Date(template.createdAt),
+            updatedAt: new Date(template.updatedAt)
+          };
+          this.templates.set(template.id, processedTemplate);
         });
       }
 
       // 加载使用统计
       if (parsed.stats) {
-        parsed.stats.forEach(([templateId, stats]: [string, TemplateUsageStats]) => {
-          this.usageStats.set(templateId, stats);
+        parsed.stats.forEach(([templateId, stats]: [string, any]) => {
+          // 确保日期对象正确转换
+          const processedStats: TemplateUsageStats = {
+            ...stats,
+            lastUsed: new Date(stats.lastUsed)
+          };
+          this.usageStats.set(templateId, processedStats);
         });
       }
 
